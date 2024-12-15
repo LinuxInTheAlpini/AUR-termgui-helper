@@ -23,7 +23,7 @@ echo "Updating package list and installing dependencies..."
 sudo pacman -Syu --noconfirm
 check_status "Updating package list"
 
-sudo pacman -S --noconfirm gcc curl ncurses base-devel git
+sudo pacman -S --noconfirm gcc curl ncurses base-devel git fzf
 check_status "Installing dependencies"
 
 # Controllo se esiste il file sorgente
