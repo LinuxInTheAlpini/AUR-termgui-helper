@@ -2,7 +2,7 @@
 
 # Nome del file sorgente e del comando
 SOURCE_FILE="AUR.c"
-EXECUTABLE_NAME="aur"
+EXECUTABLE_NAME="alis"
 
 # Funzione per verificare l'esito di un comando
 check_status() {
