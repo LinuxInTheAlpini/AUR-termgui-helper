@@ -12,7 +12,6 @@ typedef struct {
     size_t size;
 } Response;
 
-// Funzione di callback per cURL
 size_t write_callback(void *ptr, size_t size, size_t nmemb, Response *res) {
     size_t new_len = res->size + size * nmemb;
     char *temp = realloc(res->data, new_len + 1);
@@ -27,7 +26,12 @@ size_t write_callback(void *ptr, size_t size, size_t nmemb, Response *res) {
     return size * nmemb;
 }
 
-// Ricerca pacchetti AUR
+void cleanup_ncurses() {
+    if (!isendwin()) {
+        endwin();
+    }
+}
+
 int search_aur(const char *query, char results[][LINE_LENGTH]) {
     CURL *curl = curl_easy_init();
     if (!curl) return 0;
@@ -62,31 +66,10 @@ int search_aur(const char *query, char results[][LINE_LENGTH]) {
     return count;
 }
 
-// Ricerca pacchetti con pacman
-int search_pacman(const char *query, char results[][LINE_LENGTH]) {
-    FILE *fp;
-    char command[256], line[LINE_LENGTH];
-    snprintf(command, sizeof(command), "pacman -Ss %s", query);
-
-    fp = popen(command, "r");
-    if (!fp) return 0;
-
-    int count = 0;
-    while (fgets(line, sizeof(line), fp) && count < MAX_RESULTS) {
-        line[strcspn(line, "\n")] = 0;
-        snprintf(results[count], LINE_LENGTH, "PACMAN: %s", line);
-        count++;
-    }
-
-    pclose(fp);
-    return count;
-}
-
-// Visualizza risultati con scrolling e ncurses
 void show_results_ncurses(char results[][LINE_LENGTH], int total) {
     int highlight = 0, ch;
-    int start = 0; // Prima riga visibile
-    int max_lines = LINES - 4; // Numero massimo di righe visibili
+    int start = 0;
+    int max_lines = LINES - 4;
 
     while (1) {
         clear();
@@ -115,62 +98,64 @@ void show_results_ncurses(char results[][LINE_LENGTH], int total) {
                 if (highlight < total - 1) highlight++;
                 if (highlight >= start + max_lines) start++;
                 break;
-            case 27: // ESC per tornare alla home
+            case 27:
                 return;
-            case 10: { // ENTER per installare il pacchetto selezionato
+            case 10: {
                 char package_name[128];
                 sscanf(results[highlight], "%*s %127s", package_name);
                 char command[256];
                 if (strstr(results[highlight], "AUR")) {
                     snprintf(command, sizeof(command), "yay -S --noconfirm %s", package_name);
                 } else {
-                    snprintf(command, sizeof(command), "sudo pacman -S %s", package_name);
+                    snprintf(command, sizeof(command), "sudo pacman -S --noconfirm %s", package_name);
                 }
-                endwin();
+                cleanup_ncurses();
                 printf("Installing: %s...\n", package_name);
                 system(command);
-                initscr();
                 return;
             }
         }
     }
 }
 
-// Schermata principale con ncurses
 void show_home_screen() {
     char query[128];
     char results[MAX_RESULTS][LINE_LENGTH];
     int total = 0;
 
-    while (1) {
-        initscr();
-        cbreak();
-        noecho();
-        keypad(stdscr, TRUE);
-        clear();
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
 
+    while (1) {
+        clear();
         mvprintw(LINES / 2 - 1, COLS / 2 - 20, "Enter package name to search (or ESC to quit): ");
         echo();
         mvgetnstr(LINES / 2, COLS / 2 - 20, query, sizeof(query) - 1);
         noecho();
 
-        if (strlen(query) == 0) {
-            endwin();
-            return; // Esce dal programma se input vuoto
+        if (strlen(query) == 0 || query[0] == '\n') {
+            cleanup_ncurses();
+            printf("No input provided. Exiting...\n");
+            return;
         }
 
-        endwin();
-        printf("Searching... Please wait.\n");
+        clear();
+        printw("[INFO] Searching for '%s'. Please wait...\n", query);
+        refresh();
 
-        total = search_pacman(query, results);
-        total += search_aur(query, results + total);
+        total = search_aur(query, results);
 
         if (total == 0) {
-            printf("No results found. Returning to home...\n");
+            mvprintw(LINES / 2, COLS / 2 - 20, "No results found for '%s'. Press any key to continue.", query);
+            getch();
         } else {
             show_results_ncurses(results, total);
         }
     }
+
+    cleanup_ncurses();
 }
 
 int main() {
