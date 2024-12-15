@@ -1,4 +1,4 @@
-# AUR-termgui-helper (BETA)
+# AUR-termgui-helper (BETA) v0.4
 AUR termgui helper
 
 
