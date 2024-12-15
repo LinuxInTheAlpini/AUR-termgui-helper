@@ -1,4 +1,4 @@
-# AUR-termgui-helper (BETA) v0.4
+ALIS [AUR termgui helper] (BETA) v0.4
 AUR termgui helper
 
 
