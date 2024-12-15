@@ -8,3 +8,10 @@ ScreenShots
 
 ![Shot-2024-12-15-180215](https://github.com/user-attachments/assets/3f51c76a-8bb2-4171-ae12-b93664b3d39d)
 ![immagine](https://github.com/user-attachments/assets/697a10fe-2972-46fa-b5e2-173c7901c417)
+
+
+by:
+LinuxInTheAlpini(creator of the idea)
+h3x`danii(made the code in python and did the design)
+
+#for help ASK to LinuxInTheAlpini on discord
