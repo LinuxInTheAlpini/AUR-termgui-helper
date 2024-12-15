@@ -122,7 +122,7 @@ void show_results_ncurses(char results[][LINE_LENGTH], int total) {
                 sscanf(results[highlight], "%*s %127s", package_name);
                 char command[256];
                 if (strstr(results[highlight], "AUR")) {
-                    snprintf(command, sizeof(command), "yay -S %s", package_name);
+                    snprintf(command, sizeof(command), "yay -S --noconfirm %s", package_name);
                 } else {
                     snprintf(command, sizeof(command), "sudo pacman -S %s", package_name);
                 }
